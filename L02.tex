@@ -1,0 +1,302 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% Chris Pierson %
+% ECE 351 Section 51 %
+% Lab 2 %
+% Due 1/31/23 %
+%  %
+% %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+% Insert an Image:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{picture.PNG}
+%   \caption{Insert Caption Here}
+% \end{figure}
+
+% Create a New Section:
+% \section{Section Name}
+
+
+
+
+\documentclass[12pt]{article}
+
+% Language and font encoding
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{setspace}
+
+% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{gensymb}
+
+%Line Spacing
+\setstretch{1.5}
+
+%-------------------Begin Editing Here---------------------
+
+\title{%
+	\textbf{LAB 2} \\
+	 ECE 351 }
+
+\author{\\
+	Christopher Pierson}
+\begin{document}
+	
+%\maketitle
+	
+%Make a Title Page
+\vspace{\fill}
+\maketitle
+\vspace{\fill}
+\clearpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+
+The purpose of this lab is to introduce user-defined functions in Python.  We used these functions to demonstrate various signal operations such as time shifting, time scaling, time reversal, signal addition and differentiation.
+
+%Introduction
+\section{Part 1}
+
+ \begin{figure}[H]
+	   \centering
+	   \includegraphics[width=0.8\linewidth]{plot1.PNG}
+	   \caption{Plot for cosine function}
+	 \end{figure}
+
+\subsection{Code}
+
+\begin{lstlisting}
+	
+def func1(t):
+	y = np.cos(t)
+	return y
+	
+	y = func1(t)
+\end{lstlisting}
+
+
+%1. Plot for funtion in Task 2 with good resolution.
+%2. Code for your user-defined function from Task 2
+
+\section{Part 2}
+\subsection{Equation}
+\[y = r(t) - r(t-3) + 5u(t-3) - 2u(t-6) - 2r(t-6)\]
+
+
+\subsection{Code}
+
+\begin{lstlisting}
+
+def step1(t):
+    y = np.zeros(t.shape)
+    
+    for i in range(len(t)):
+        if t[i] < 0:
+            y[i] = 0
+        else:
+            y[i] = 1
+    return y
+
+def ramp(t):
+    y = np.zeros(t.shape)
+    
+    for i in range(len(t)):
+        if t[i] < 0:
+            y[i] = 0
+        else:
+            y[i] = t[i]
+    return y
+
+def func2(t):
+    y = ramp(t) - ramp(t-3) + 5 * step1(t-3) - 2 * step1(t-6) - 2 * ramp(t-6)
+    return y
+
+y = func2(t)
+
+\end{lstlisting}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{step.PNG}
+	\caption{step function}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{ramp.PNG}
+	\caption{ramp function}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{udf.PNG}
+	\caption{User Defined Function}
+\end{figure}
+
+\section{Part 3}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{TR.PNG}
+	\caption{Time Reversal}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{TS1.PNG}
+	\caption{Time Shift 1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{TS2.PNG}
+	\caption{Time Shift and Reversal}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{TScale1.PNG}
+	\caption{Time Scale 1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{TScale2.PNG}
+	\caption{Time Scale 2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{handdrawn.PNG}
+	\caption{Hand Drawn Derivative}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{der.PNG}
+	\caption{Python Derivative}
+\end{figure}
+
+\subsection{Code}
+
+\begin{lstlisting}
+
+#################################################################
+##  PART 3 ##
+plt.clf()
+#Time Reversal
+# t = np.arange(-10,5 + steps, steps)
+# y = func2(-t)
+# plt.plot(t, y)
+# plt.grid()
+# plt.title('Time Reversal')
+# plt.xlabel('t')
+# plt.ylabel('y')
+# plt.show
+
+#Time Shift 1
+# t = np.arange(-1,14 + steps, steps)
+# y = func2(t-4)
+# plt.plot(t, y)
+# plt.grid()
+# plt.title('Time Shift 1')
+# plt.xlabel('t')
+# plt.ylabel('y')
+# plt.show
+
+#Time Shift 2
+# t = np.arange(-14,1 + steps, steps)
+# y = func2(-t-4)
+# plt.plot(t, y)
+# plt.grid()
+# plt.title('Time Shift 2')
+# plt.xlabel('t')
+# plt.ylabel('y')
+# plt.show
+
+#Time Scale 1
+# t = np.arange(-10,20 + steps, steps)
+# y = func2(t/2)
+# plt.plot(t, y)
+# plt.grid()
+# plt.title('Time Scale 1')
+# plt.xlabel('t')
+# plt.ylabel('y')
+# plt.show
+
+#Time Scale 2
+# t = np.arange(-10,5 + steps, steps)
+# y = func2(2*t)
+# plt.plot(t, y)
+# plt.grid()
+# plt.title('Time Scale 2')
+# plt.xlabel('t')
+# plt.ylabel('y')
+# plt.show
+
+
+steps =1e-5
+
+t=np.arange(-5,10+steps,steps)
+y= func2(t)
+dt = np.diff(t)
+dy = np.diff(y, axis = 0)/dt
+
+
+plt.figure(figsize = (15,7))
+#plt.plot(t,y, '--', label = 'y(t)')
+plt.plot(t,y, 'r--')
+plt.plot(t[range(len(dy))],dy)
+#plt.plot(t[range(len(dy))], dy, label='dy(t)/dt')
+plt.grid()
+plt.ylabel('y(t)')
+plt.title('Derivative')
+plt.xlabel('t')
+plt.ylim([-2,10])
+plt.show()
+
+\end{lstlisting}
+
+
+\section{Part 4}
+
+
+\section{Questions}
+
+1. Are the plots from Part 3 Task 4 and Part 3 Task 5 identical? Is it possible for them to match? Explain why or why not
+\\ \\
+The plots of my hand-drawn derivative versus the Python plot were not identical, the Python plot has a vertical line that goes to infinity at t=3, where the original plot transitions from a ramp to a step function.  My hand-drawn plot does not have this since there is no reason to draw it.  It should be possible to make the python plot match the hand-drawn plot by doing a piece-wise plot that does not include transitions that python would draw as vertical lines.
+\\ \\ 
+2. How does the correlation between the two plots (from Part 3 Task 4 and Part 3 Task 5) change if you were to change the step size within the time variable in Task 5? Explain why this happens.
+\\ \\ 
+The smaller the step size, the closer the correlation.  This happens because as the step size decreases, more steps are added to the range which makes the derivative more accurate.  As the step size becomes infinitely small, the approximation approaches the real idea of the derivative, which has dt being an infinitely small slice.
+\\ \\
+3. Leave any feedback on the clarity of lab tasks, expectations, and deliverables.
+\\ \\
+Lab tasks and deliverables clarity was straightforward.  Figuring out how to do the derivative portion of the lab was somewhat challenging but after I found a good explanation on how the nump.diff function worked it was better.
+
+\section{GitHub Link}
+\url{https://github.com/pier1580}
+\end{document}
