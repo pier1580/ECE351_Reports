@@ -1,0 +1,297 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% Chris Pierson %
+% ECE 351 Section 51 %
+% Lab 3 %
+% Due 2/7/23 %
+%  %
+% %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Insert an Image:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{picture.PNG}
+%   \caption{Insert Caption Here}
+% \end{figure}
+
+% Create a New Section:
+% \section{Section Name}
+
+
+\documentclass[12pt]{article}
+
+% Language and font encoding
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{setspace}
+
+% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{gensymb}
+
+%Line Spacing
+\setstretch{1.5}
+
+%-------------------Begin Editing Here---------------------
+
+\title{%
+	\textbf{LAB 3} \\
+	Discrete Convolution \\
+	 ECE 351 }
+
+\author{\\
+	Christopher Pierson}
+\begin{document}
+	
+%\maketitle
+	
+%Make a Title Page
+\vspace{\fill}
+\maketitle
+\vspace{\fill}
+\clearpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+
+The purpose of this lab is to work with convolutions in Python.  We will both write our own code that will convolve two functions and will use Python's built-in convolution to verify that our code works correctly.
+
+%Introduction
+\section{Part 1}
+\subsection{Equations}
+
+\[f_{1}(t)=u(t-2)-u(t-9)\]
+\[f_{2}(t)=e^{-t}u(t)\]
+\[f_3(t)=r(t-2)[u(t-2)-u(t-3)]+r(4-t)[u(t-3)-u(t-4)]\]
+
+
+\subsection{Methodology}
+
+The step and ramp functions were taken from the previous lab.  I renamed the functions to u(t) and r(t) to make the equations easier to read and work with.
+
+\subsection*{Code}
+\begin{scriptsize}
+\begin{lstlisting}
+#################################################################
+##  PART 1 ##
+steps = 1e-2
+t = np.arange(0,20 + steps, steps)
+
+def u(t):  #step function
+    y = np.zeros(t.shape)
+    for i in range(len(t)):
+        if t[i] < 0:
+            y[i] = 0
+        else:
+            y[i] = 1
+    return y
+    
+def r(t):  #ramp function
+    y = np.zeros(t.shape)   
+    for i in range(len(t)):
+        if t[i] < 0:
+            y[i] = 0
+        else:
+            y[i] = t[i]
+    return y
+    
+def f_1(t):
+    y = u(t - 2) - u(t - 9)
+    return y
+f1 = f_1(t)
+def f_2(t):
+    y = np.exp(-t) * u(t)
+    return y
+f2 = f_2(t)
+def f_3(t):
+    y = r(t - 2)*(u(t - 2) - u(t - 3)) + r(4 - t)*(u(t-3)-u(t-4))
+    return y
+f3 = f_3(t)
+
+# Code for plots
+plot1 = plt.figure(figsize =(12 ,8)) # start a new figure , with a custom figure size
+plt.subplot(3 ,1 ,1) # subplot 1: subplot format (row , column , number )
+plt.plot(t, f1) # choosing plot variables for x and y axes
+plt.title('Lab 3 Plots') # title for entire figure
+
+# (all three subplots )
+plt.ylabel('f1(t)') # label for subplot 1
+plt.grid(True) # show grid on plot
+plt.subplot(3, 1, 2) # subplot 2
+plt.plot(t, f2)
+plt.ylabel('f2(t)') # label for subplot 2
+plt.grid(which ='both') # use major and minor grids
+plt.subplot(3, 1, 3) # subplot 3
+plt.plot(t, f3)
+plt.ylabel('f3(t)') # label for subplot 2
+plt.grid(which ='both') # use major and minor grids
+plt.show()
+
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+ \begin{figure}[H]
+	   \centering
+	   \includegraphics[width=0.8\linewidth]{fig1.PNG}
+	   \caption{Three functions with separate subplots}
+ \end{figure}
+
+
+\section{Part 2}
+\subsection{Methodology}
+The code for this section was mostly provided by the TA.  I was attempting to get something like this but was having trouble with the array sizes not matching.
+\subsection*{Code}
+\begin{scriptsize}
+\begin{lstlisting}
+#################################################################
+##  PART 2 ##
+
+def my_conv(func_1, func_2):
+    Nf1 = len(func_1)  #length of input function 1
+    Nf2 = len(func_2)  #length of input function 2
+    f1Extended = np.append(func_1, np.zeros((1, Nf2-1))) #makes functions same
+    f2Extended = np.append(func_2, np.zeros((1, Nf1-1))) #length by adding 0s   
+        
+    result = np.zeros(f1Extended.shape) #output array
+
+    for i in range(Nf2 + Nf1 - 2):  #loop through all values of both functions
+        result[i] = 0
+        for j in range(Nf1):  #loop through values of first function
+            if(i - j + 1) > 0:
+                try:  #attempts to multiply functions and set result to output
+                    result[i] += f1Extended[j] * f2Extended[i - j + 1]
+                except: #prints array location if there is an exception
+                    print(i,j)                    
+    return result    
+
+t_conv = np.arange(0, 2*t[len(t)-1], steps)
+
+f1_f2_conv = my_conv(f1,f2)
+f2_f3_conv = my_conv(f2,f3)
+f1_f3_conv = my_conv(f1,f3)
+
+plt.figure( figsize = (10 , 7) )
+plt.plot(t_conv, f1_f2_conv)
+plt.grid()
+plt.ylabel('Y')
+plt.xlabel('t')
+plt.title('Convolution of f1 and f2')
+
+plt.figure( figsize = (10 , 7) )
+plt.plot(t_conv, f2_f3_conv)
+plt.grid()
+plt.ylabel('Y')
+plt.xlabel('t')
+plt.title('Convolution of f2 and f3')
+
+plt.figure( figsize = (10 , 7) )
+plt.plot(t_conv, f1_f3_conv)
+plt.grid()
+plt.ylabel('Y')
+plt.xlabel('t')
+plt.title('Convolution of f1 and f3')
+
+builtin_conv1 = sig.convolve(f1,f2)
+builtin_conv2 = sig.convolve(f2,f3)
+builtin_conv3 = sig.convolve(f1,f3)
+
+plt.figure( figsize = (10 , 7) )
+plt.plot(t_conv, builtin_conv1)
+plt.grid()
+plt.ylabel('Y')
+plt.xlabel('t')
+plt.title('Built-in Convolution of f1 and f2')
+
+plt.figure( figsize = (10 , 7) )
+plt.plot(t_conv, builtin_conv2)
+plt.grid()
+plt.ylabel('Y')
+plt.xlabel('t')
+plt.title('Built-in Convolution of f2 and f3')
+
+plt.figure( figsize = (10 , 7) )
+plt.plot(t_conv, builtin_conv3)
+plt.grid()
+plt.ylabel('Y')
+plt.xlabel('t')
+plt.title('Built-in Convolution of f1 and f3')
+\end{lstlisting}
+\end{scriptsize}
+\subsection{Results}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{c1.PNG}
+	\caption{User Defined Convolution of f1 and f2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{c2.PNG}
+	\caption{User Defined Convolution of f2 and f3}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{c3.PNG}
+	\caption{User Defined Convolution of f1 and f3}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{cc1.PNG}
+	\caption{scipy.signal Defined Convolution of f1 and f2}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{cc2.PNG}
+	\caption{scipy.signal Defined Convolution of f2 and f3}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\linewidth]{cc3.PNG}
+	\caption{scipy.signal Defined Convolution of f1 and f3}
+\end{figure}
+
+
+\section{Questions}
+
+1. Did you work alone or with classmates on this lab? If you collaborated to get to the solution, what did that process look like?
+\\ \\
+I worked alone for the first part of this lab.  For the second part where we were writing code for the convolution I was trying some of the same things as classmates in the lab but was not making much progress until the TA gave us a rough draft of what the code should be.
+\\ \\ 
+2. What was the most difficult part of this lab for you, and what did your problem-solving process look like?
+\\ \\ 
+The most difficult part of the lab was understanding the Python code to make the convolution.  The concept of what needs to be done isn't very complex but implementing it in Python was not easy.
+\\ \\
+3. Did you approach writing the code with analytical or graphical convolution in mind? Why did you chose this approach?
+\\ \\
+I approached writing the code with analytical convolution in mind.  The product of the two functions with one of them reversed makes more sense to me than a graphical approach.
+\\ \\
+4. Leave any feedback on the clarity of lab tasks, expectations, and deliverables.
+\\ \\
+Lab tasks and deliverables clarity was straightforward.  
+
+\section{GitHub Link}
+\url{https://github.com/pier1580}
+\end{document}
