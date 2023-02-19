@@ -1,0 +1,259 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% Chris Pierson %
+% ECE 351 Section 51 %
+% Lab 5 %
+% Due 2/21/23 %
+% %
+% %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Insert an Image:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{picture.PNG}
+%   \caption{Insert Caption Here}
+% \end{figure}
+
+% Create a New Section:
+% \section{Section Name}
+
+
+\documentclass[12pt]{article}
+
+% Language and font encoding
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{setspace}
+
+% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{gensymb}
+
+%Line Spacing
+\setstretch{1.5}
+
+%-------------------Begin Editing Here---------------------
+
+\title{%
+	\textbf{LAB 5} \\
+	Step and Impulse Response \\of an RLC Band Pass Filter \\
+	 ECE 351 }
+
+\author{\\
+	Christopher Pierson}
+\begin{document}
+	
+%\maketitle
+	
+%Make a Title Page
+\vspace{\fill}
+\maketitle
+\vspace{\fill}
+\clearpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+
+\paragraph{}
+For this lab, we began with an RLC band-pass filter circuit (figure 1) that we converted to the Laplace domain and found the transfer function H(s).
+
+ \begin{figure}[H]
+   \centering
+   \includegraphics[width=0.8\linewidth]{circuit.PNG}
+   \caption{Prelab Circuit}
+ \end{figure}
+
+
+After finding the transfer function, we used Python to plot the time-domain response to impulse and step inputs for this circuit.
+
+
+%Introduction
+\section{Part 1}
+\subsection{Equations}
+
+\[\text{Transfer Function= }H(s)=\dfrac{Vout(s)}{Vin(s)}=\dfrac{(\frac{1}{RC})s}{s^{2}+(\frac{1}{RC})s+(\frac{1}{LC})}\]
+
+\[\text{Sine Method: }f(t)=\frac{|g|}{\omega}e^{\alpha t}sin(\omega t+\angle g)\]
+
+\[p=\dfrac{(-a+\sqrt{a^{2}-4b})}{2}=\alpha + j\omega\]
+
+\[|g|\angle g=F'(s)|_{s=p}\]
+
+\subsection{Methodology}
+
+%Using the hand-solved time-domain impulse response from the prelab, implemented as a
+%function.
+%2. Using the scipy.signal.impulse() function with the s-domain transfer function from the
+%prelab
+\paragraph{}
+For the first part of the lab, I setup the time domain impulse response equation using the sine method learned in class.  I used several intermediate variables for the equation, following the method learned.  
+\paragraph{}
+To plot the scipy.signal.impulse() function, I used the format given in the lab handout.
+
+\subsection{Code}
+\begin{scriptsize}
+\begin{lstlisting}
+
+#################################################################
+                        ##  PART 1 ##
+#################################################################
+
+R = 1000
+L = 27E-3
+C = 100E-9
+
+steps = 1e-5
+t = np.arange(0, 1.2e-3 + steps, steps) 
+
+num = [(1/(R*C)),0]
+den = [1, (1/(R*C)), (1/(L*C))]
+
+tout, yout = sig.impulse((num,den), T = t)#impulse function of num & den 
+
+# def h_1(t): # numbers plugged into sine method
+#     y = (10358*np.exp(-5000*t)*np.sin(18584*t+105*np.pi/180))
+#     return y
+# h1 = h_1(t)
+
+def p(R,L,C):
+    return (-1/(R*C)+((1/(R*C))**2-4/(L*C))**.5)/2
+#print(p(R,L,C).real)
+
+def alpha(p):
+    return p(R,L,C).real
+
+def omega(p):
+    return p(R,L,C).imag
+
+#print("ap:", alpha(p)) 
+
+def g(R,L,C):
+    return 1/(R*C)*p(R, L, C)
+#print(g(R,L,C))    
+
+def mag_g(R,L,C):
+    return (g(R,L,C).real**2+g(R,L,C).imag**2)**.5                
+#print("test: ",(mag_g(R,L,C)/omega(p))*np.exp(alpha(p)*.0003))
+
+def angle_g(R,L,C):  # should return proper angle dep. on quadrant
+    if g(R,L,C).real > 0 and g(R,L,C).imag > 0:
+        return np.arctan(g(R,L,C).imag/g(R,L,C).real)
+    elif g(R,L,C).real < 0 and g(R,L,C).imag > 0:
+        return np.arctan(g(R,L,C).imag/g(R,L,C).real)+np.pi
+    elif g(R,L,C).real < 0 and g(R,L,C).imag < 0:
+        return np.arctan(g(R,L,C).imag/g(R,L,C).real)+np.pi
+    elif g(R,L,C).real > 0 and g(R,L,C).imag < 0:
+        return np.arctan(g(R,L,C).imag/g(R,L,C).real)
+#print(angle_g(R,L,C))
+
+def sine_method(R,L,C,x): #sine method from class
+    return mag_g(R,L,C)/omega(p)*np.exp(alpha(p)*t)*np.sin(omega(p)*x+angle_g(R,L,C))
+
+#print(sine_method(R,L,C,.0003))
+
+#Code for plots
+plot1 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.subplot(2 ,1 ,1) # subplot 1: subplot format (row , column , number )
+plt.plot(t, sine_method(R,L,C,t)) # choosing plot variables for x and y axes
+plt.ylabel('Hand Calculation') # label for subplot 1
+plt.grid(True) # show grid on plot
+
+plt.title('Lab 5 Plots') # title for entire figure 
+
+plt.subplot(2, 1, 2) # subplot 2
+plt.plot(t, yout)
+plt.ylabel('Scipy.Signal Output') # label for subplot 2
+plt.grid(True) # show grid on plot
+
+plt.show()
+
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+ \begin{figure}[H]
+	   \centering
+	   \includegraphics[width=0.9\linewidth]{p1.PNG}
+	   \caption{Part 1 Plots}
+ \end{figure}
+
+
+\section{Part 2}
+\subsection{Methodology}
+
+\paragraph{}
+For this section, I changed the code to plot the signal impulse function from part one to plot the signal step function.  
+\paragraph{}
+The definition of the final value theorem was used for the equation.
+
+\subsection{Equations}
+
+\[\text{Final Value Theorem: }\lim_{t \to \infty}f(t)=\lim_{s \to 0}sF(s)\]
+
+
+\subsection{Code}
+\begin{scriptsize}
+\begin{lstlisting}
+
+#################################################################
+                        ##  PART 2 ##
+#################################################################
+
+tout, yout2 = sig.step((num,den), T = t)#step response of H(s) w/ sig.step
+
+plot2 = plt.figure(figsize =(12 ,8)) # start a new figure 
+
+plt.subplot(2 ,1 ,1) # subplot 1: subplot format (row , column , number )
+plt.plot(t,yout2) # choosing plot variables for x and y axes
+plt.ylabel('Step Response of H(s)') # label for subplot 1
+plt.grid(True) # show grid on plot
+
+plt.title('Step Response of H(s)') # title for entire figure
+plt.show()
+
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+\[ \lim_{s \to 0}H(s)u(s)= \lim_{s \to 0} (\dfrac{(\frac{1}{RC})s}{s^{2}+(\frac{1}{RC})s+(\frac{1}{LC})})=0\]
+
+ \begin{figure}[H]
+	   \centering
+	   \includegraphics[width=0.9\linewidth]{p2.PNG}
+	   \caption{Step Response}
+ \end{figure}
+ 
+\paragraph{}
+The plot of the step response looks like the plots from part one with both being the product of a sinusoid and a decaying exponential.  The step response plot for part two is different in that it starts at zero for s=0, where the part one plots started at a non zero point.  This makes sense since the step response is the convolution of the step function and the transfer function.
+
+\section{Questions}
+1. Explain the result of the Final Value Theorem from Part 2 Task 2 in terms of the physical circuit components.
+\\ \\
+The final value theorem shows that the function goes to 0 as s approaches 0 or as t approaches infinity for the time domain function.  In terms of the physical circuit components, this makes sense since the power source is a DC source.  When the circuit reaches steady state, the inductor will act as a wire.  Since Vout is in parallel with the inductor, Vout will go to zero.
+\\ \\
+2. Leave any feedback on the clarity of lab tasks, expectations, and deliverables.
+\\ \\
+Lab tasks and deliverables clarity was straightforward.  
+
+\section{GitHub Link}
+\url{https://github.com/pier1580}
+\end{document}
