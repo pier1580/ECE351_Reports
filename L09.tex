@@ -1,0 +1,357 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% Chris Pierson %
+% ECE 351 Section 51 %
+% Lab 9 %
+% Due 3/28/23 %
+% %
+% %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Insert an Image:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{picture.PNG}
+%   \caption{Insert Caption Here}
+% \end{figure}
+
+% Create a New Section:
+% \section{Section Name}
+
+
+\documentclass[12pt]{article}
+
+% Language and font encoding
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{setspace}
+
+% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{gensymb}
+\usepackage{ mathrsfs }
+
+%Line Spacing
+\setstretch{1.5}
+
+%-------------------Begin Editing Here---------------------
+
+\title{%
+	\textbf{ ECE 351 LAB 9} \\
+ Fast Fourier Transform 
+ %\\
+	 }
+
+\author{\\
+	Christopher Pierson}
+\begin{document}
+	
+%\maketitle
+	
+%Make a Title Page
+\vspace{\fill}
+\maketitle
+\vspace{\fill}
+\clearpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+
+\paragraph{}
+In this lab, we make a fast Fourier Transform function and plot the output of some equations in Python.
+
+%Introduction
+\section{Part 1}
+
+% \begin{figure}[H]
+%   \centering
+%%   \includegraphics[width=0.8\linewidth]{square.PNG}
+%   \caption{Square Wave}
+% \end{figure}
+
+\subsection{Equations}
+
+\[f_1(t)=\cos(2\pi t)\]
+\[f_2(t)=5\sin(2\pi t)\]
+\[f_3(t)=2\cos((2\pi \cdot 2t)-2)+\sin^2((2\pi \cdot 6t)+3)\]
+\[f_4(t)=\frac{1}{2}a_0+\sum_{k=1}^\infty a_k \cos(k\omega _0 t) +b_k \sin(k\omega_0 t) \]
+
+\subsection{Methodology}
+\paragraph{}
+The first part of the code for the fast fourier transform was given in the lab handout.  It took some trial and error to get the steps and range setup, leaving the [max range]+steps in the arange function gives strange results but removing the +steps made it work.
+\par 
+The improved version of the fast fourier transform function has a conditional added to check if the magnitude of the argument function is less than a very small number and sets the corresponding value in the angle array to zero to filter out useless data.
+\par 
+The square wave function was taken from the previous lab and modified some to compress the code.  
+\par 
+Plots 1-4 are defined in the code as well as "plots" which is an array of the plots.  Defining the plots this way allowed me to use loops for the plotting functions so that I did not need to repeat the code for the plots seven times.  
+
+\newpage
+\subsection{Code}
+
+\begin{scriptsize}
+\begin{lstlisting}
+# ###############################################################
+# 
+# Chris Pierson #
+# ECE 351 #
+# Lab 9 #
+# Due 3/28/23 #
+# 
+# ###############################################################
+
+import numpy as np
+import matplotlib.pyplot as plt
+#import scipy.signal as sig
+import scipy.fftpack as fftp
+
+#################################################################
+                        ##  PART 1 ##
+#################################################################
+
+fs = 100        # sampling frequency
+steps = 1/fs    # period
+t = np.arange(0,2,steps)
+t2 = np.arange(0,16,steps) # for square wave plot
+
+def fft(x):  # fast fourier transform
+    N = len(x)
+    X_fft = fftp.fft(x)
+    X_fft_shifted = fftp.fftshift(X_fft)
+    freq = np.arange(-N/2, N/2)*fs/N 
+    X_mag = np.abs(X_fft_shifted)/N
+    X_phi = np.angle(X_fft_shifted)
+    return freq, X_mag, X_phi
+
+def fft2(x):  # improved fast fourier transform
+    N = len(x)
+    X_fft = fftp.fft(x)
+    X_fft_shifted = fftp.fftshift(X_fft)
+    freq = np.arange(-N/2, N/2)*fs/N
+    X_mag = np.abs(X_fft_shifted)/N
+    X_phi = np.angle(X_fft_shifted)
+    NX = len(X_mag) # gets array length
+    for i in range(0,NX):
+        if(np.abs(X_mag[i]) < 1e-10): # sets corresponding array element in 
+            X_phi[i] = 0              # angle array to 0 if magnitude<1e-10  
+    return freq, X_mag, X_phi
+
+T = 8
+def square_wave(k,t):
+    y=0
+    for i in range(1,k+1):
+        y += (2/(i*np.pi)*(1-np.cos(i*np.pi)))*np.sin(i*((2*np.pi)/T)*t)
+    return y
+
+plot1 = np.cos(2*np.pi*t)
+plot2 = 5*np.sin(2*np.pi*t)
+plot3 = 2*np.cos((2*np.pi*2*t)-2)+(np.sin((2*np.pi*6*t)+3))**2
+plot4 = square_wave(15,t2)
+plots = plot1, plot2, plot3, plot4
+
+for k in range(2):
+    x1 = 2  # zoomed in range  
+    for i in range(len(plots)-1+k): #loops through plots 1-4 2x before plot5
+        if k == 1 and i == 3: 
+            x1=16  # changes range for square wave
+            t = np.arange(0,16,steps)
+        if k == 0:
+            freq, X_mag, X_phi = fft(plots[i]) 
+        if k == 1:
+            freq, X_mag, X_phi = fft2(plots[i])
+            
+        plot = plt.figure(figsize =(12 ,8)) # start a new figure
+    
+        plt.subplot(3 ,1 ,1) # subplot 1: subplot format (row , column , number )
+        plt.plot(t, plots[i]) # choosing plot variables for x and y axes
+        plt.xlim(0,x1)
+        plt.ylabel('x(t)') # label for subplot 1
+        plt.grid(True) # show grid on plot
+        
+        plt.title('Lab 9') # title for entire figure 
+        
+        plt.subplot(3, 2, 3) # subplot 2
+        plt.stem(freq, X_mag)
+        plt.xlim(-20,20)
+        plt.ylabel('mag') # label for subplot 2
+        plt.grid(True) # show grid on plot
+        
+        plt.subplot(3, 2, 4) # subplot 3
+        plt.stem(freq, X_mag)
+        plt.xlim(-3,3)
+        #plt.ylabel('mag') # label for subplot 3
+        plt.grid(True) # show grid on plot
+        
+        plt.subplot(3, 2, 5) # subplot 4
+        plt.stem(freq, X_phi)
+        plt.xlim(-20,20)
+        plt.ylabel('angle') # label for subplot 4
+        plt.grid(True) # show grid on plot
+        
+        plt.subplot(3, 2, 6) # subplot 5
+        plt.stem(freq, X_phi)
+        plt.xlim(-3,3)
+        #plt.ylabel('angle') # label for subplot 5
+        plt.grid(True) # show grid on plot
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+\begin{figure}[H]
+   	\centering
+   	\includegraphics[width=0.8\linewidth]{plot1.PNG}
+   	\caption{Fast Fourier Transform Plot 1}
+\end{figure}
+ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot2.PNG}
+   	\caption{Fast Fourier Transform Plot 2}
+\end{figure}
+  
+\begin{figure}[H]
+   	\centering
+   	\includegraphics[width=0.8\linewidth]{plot3.PNG}
+   	\caption{Fast Fourier Transform Plot 3}
+\end{figure}
+ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot4.PNG}
+   	\caption{Improved Fast Fourier Transform Plot 1}
+\end{figure} 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot5.PNG}
+   	\caption{Improved Fast Fourier Transform Plot 2}
+\end{figure} 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot6.PNG}
+   	\caption{Improved Fast Fourier Transform Plot 3}
+\end{figure}  
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot7.PNG}
+   	\caption{Improved Fast Fourier Transform of Square Wave Function}
+\end{figure} 
+
+
+%\section{Part 2}
+%\subsection{Equations}
+%\subsubsection{Symbolic Closed Loop Equation}
+%\[H(s)=\dfrac{Y(s)}{X(s)}=\dfrac{A(s)G(s)}{1+B(s)G(s)}=\dfrac{\frac{A_{num}(s)G_{num}(s)}{A_{den}(s)G_{den}(s)}}
+%{1+B(s)\frac{G_{num}(s)}{G_{den}(s)}}=\dfrac{A_{num}(s)G_{num}(s)}{A_{den}(s)G_{den}(s)+B(s)A_{den}(s)G_{num}(s)}\]
+%\subsubsection{Closed Loop Equation}
+%\[H(s)=\dfrac{s^{2}+13s+36}{2s^{5}+41s^{4}+500s^{3}+2995s^{2}+6878s+4344}\]
+%\subsubsection{Closed Loop Factored Equation}
+%\[H(s)=\dfrac{(s+4)(s+9)}{(s+5.16-j9.52)(s+5.16+j9.52)(s+6.18)(s+3)(s+1)}\]
+
+%\subsection{Python Output}
+%\begin{small}
+%\begin{lstlisting}
+%Closed Loop Numerator =  [ 1 13 36]
+%Closed Loop Denominator =  [   2   41  500 2995 6878 4344]
+%Closed Loop Values: 
+%z= [-9. -4.]
+%p= [-5.16+9.52j -5.16-9.52j -6.18+0.j   -3.  +0.j   -1.  +0.j  ]
+%k= 0.5
+%\end{lstlisting}
+%\end{small}
+%
+%\subsection{Methodology}
+%
+%\paragraph{}
+%The methodology for the second part of the lab was the same as the first part.  Sig.convolve was used to multiply factors together and sig.tf2zpk was used to find the poles and zeros in Python.
+%
+%\subsection{Code}
+%\begin{scriptsize}
+%\begin{lstlisting}
+
+
+%\end{lstlisting}
+%\end{scriptsize}
+%
+%\subsection{Results}
+%
+%
+% \begin{figure}[H]
+%	   \centering
+%%	   \includegraphics[width=0.9\linewidth]{plot2.PNG}
+%	   \caption{Part 2 Plots}
+% \end{figure}
+
+
+\section{Questions}
+1. What happens if fs is lower? If it is higher? fs in your report must span a few orders of magnitude.
+\\ \\
+If the sampling frequency fs is lower, the period increases, which reduces the accuracy of the plots.  Increasing fs increases accuracy and the overall number of times the input equation is sampled for output. 
+\\ \\
+2. What difference does eliminating the small phase magnitudes make?
+\\ \\
+Removing the angles corresponding to the small magnitudes makes the phase plot more readable by removing the angles which have no effect on the actual output.
+\\ \\
+3. Verify your results from Tasks 1 and 2 using the Fourier transforms of cosine and sine. Explain why your results are correct. You will need the transforms in terms of Hz, not rad/s. For example, the Fourier transform of cosine (in Hz) is 
+\[\mathscr{F}\{\cos(2\pi f_0 t)\}=\frac{1}{2}[\delta(f-f_0)+\delta(f+f_0)]\]
+\\ \\ 
+Equation 1: \[\mathscr{F}\{\cos(2\pi*1*t)\}=\frac{1}{2}[\delta(f-1)+\delta(f+1)]\]
+This matches the results shown in Figure 4, subplots 2 and 3.  The stem plot shows lines at t=-1 and 1 of magnitude 1/2.
+\\ \\
+Equation 2: \[\mathscr{F}\{5\sin(2\pi*1*t)\}=\frac{5}{j2}[\delta(f-1)-\delta(f+1)]\]
+This matches the results shown in Figure 5, subplots 2 and 3.  The stem plot shows lines at t=-1 and 1 of magnitude 2.5.
+\\ \\
+4. Leave any feedback on the clarity of lab tasks, expectations, and deliverables
+\\ \\ 
+The tasks, expectations and deliverables were all clearly stated.
+
+
+
+\section{GitHub Link}
+\url{https://github.com/pier1580}
+
+%\appendix
+%\section{Appendices}
+%\subsection{Part 1 Output}
+%\begin{scriptsize}
+%\begin{lstlisting}
+%a0= 0, a1= 0
+%b1= 1.273
+%b2= 0.0
+%b3= 0.424
+%\end{lstlisting}
+%\end{scriptsize}
+
+%\subsection{Part 2 Output}
+%\begin{scriptsize}
+%\begin{lstlisting}
+%Solution to lab H(s):
+%r= [ 1.   +0.j    -0.486+0.728j -0.486-0.728j -0.215+0.j     0.093-0.048j
+%  0.093+0.048j]
+%p= [  0. +0.j  -3. +4.j  -3. -4.j -10. +0.j  -1.+10.j  -1.-10.j]
+%k= []
+%\end{lstlisting}
+%\end{scriptsize}
+
+
+
+
+\end{document}

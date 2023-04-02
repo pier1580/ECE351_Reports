@@ -1,0 +1,332 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% Chris Pierson %
+% ECE 351 Section 51 %
+% Lab 7 %
+% Due 3/7/23 %
+% %
+% %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Insert an Image:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{picture.PNG}
+%   \caption{Insert Caption Here}
+% \end{figure}
+
+% Create a New Section:
+% \section{Section Name}
+
+
+\documentclass[12pt]{article}
+
+% Language and font encoding
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{setspace}
+
+% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{gensymb}
+\usepackage{ mathrsfs }
+
+%Line Spacing
+\setstretch{1.5}
+
+%-------------------Begin Editing Here---------------------
+
+\title{%
+	\textbf{ ECE 351 LAB 7} \\
+ Block Diagrams and System Stability 
+ %\\
+	 }
+
+\author{\\
+	Christopher Pierson}
+\begin{document}
+	
+%\maketitle
+	
+%Make a Title Page
+\vspace{\fill}
+\maketitle
+\vspace{\fill}
+\clearpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+
+\paragraph{}
+In this lab, we work with Laplace Domain block diagrams.  The factored form of the transfer function will be used to tell if the system is stable.
+
+%Introduction
+\section{Part 1}
+
+ \begin{figure}[H]
+   \centering
+   \includegraphics[width=0.8\linewidth]{block.PNG}
+   \caption{Block Diagram}
+ \end{figure}
+
+\subsection{Equations}
+
+\subsubsection{G(s)}
+\[G(s)=\dfrac{s+9}{(s^{2}-6s-16)(s+4)}=\dfrac{s+9}{(s+2)(s+4)(s-8)}\]
+\[\text{G(s) poles: s=-2, -4, 8 \hspace{.5cm}G(s) zeros: s=-9}\]
+\subsubsection{A(s)}
+\[A(s)=\dfrac{s+4}{s^{2}+4s+3}=\dfrac{s+4}{(s+1)(s+3)}\]
+\[\text{A(s) poles: s=-1, -3 \hspace{.5cm}G(s) zeros: s=-4}\]
+\subsubsection{B(s)}
+\[B(s)=s^{2}+26s+168=(s+12)(s+14)\]
+\[\text{B(s) zeros: s=-12, -14}\]
+
+\subsubsection{Open Loop Function: }
+\[Y(s) = A(s)G(s)X(s)=\frac{(s+4)(s+9)}{(s+1)(s+2)(s+3)(s+4)(s-8)}X(s)\]
+\subsubsection{Open Loop Transfer Function: }
+\[H(s)=\frac{Y(s)}{X(s)} = \frac{s+9}{(s+1)(s+2)(s+3)(s-8)}\]
+
+\subsection{Python Output}
+\begin{small}
+\begin{lstlisting}
+Task 2 Outputs: 
+
+G(s):
+z= [-9.]
+p= [ 8. -4. -2.]
+k= 1.0
+
+A(s):
+z= [-4.]
+p= [-3. -1.]
+k= 1.0
+
+B:  [-14. -12.]
+\end{lstlisting}
+\end{small}
+
+
+
+\subsection{Methodology}
+
+
+\paragraph{}
+For the first part of the lab, I first factored A(s), B(s), and G(s).  The poles were found by setting the denominators equal to zero and solving for s.  The zeros were found by setting the numerators equal to zero and solving for s.  The open loop equation was found by examining the block diagram and applying the block diagram rules to get the transfer function, leaving out the feedback loop.
+\subsection{Code}
+
+\begin{scriptsize}
+\begin{lstlisting}
+#################################################################
+                        ##  PART 1 ##
+#################################################################
+steps = 1e-5
+t = np.arange(0, 5 + steps, steps) 
+
+# def prelab(t):
+#     return 1/2+np.exp(-6*t)-.5*np.exp(-4*t)
+
+Gnum0 = [1, 9]
+Gden0 = [1, -2, -40, -64]
+
+Anum0 = [1, 4]
+Aden0 = [1, 4, 3]
+
+Bnum = [1, 26, 168]
+
+
+print('\nTask 2 Outputs: ')
+z,p,k = sig.tf2zpk(Gnum0,Gden0)
+print('\nG(s):\nz=',z)
+print('p=',p)
+print('k=',k)
+
+z,p,k = sig.tf2zpk(Anum0,Aden0)
+print('\nA(s):\nz=',z)
+print('p=',p)
+print('k=',k)
+
+print('\nB: ',np.roots(Bnum))
+
+OpenLnum = sig.convolve(Anum0, Gnum0)
+print ('\nOpen Loop Numerator = ' , OpenLnum)
+
+OpenLden = sig.convolve(Aden0, Gden0)
+print ('Open Loop Denominator = ', OpenLden)
+
+OpenLStepT, OpenLStepY = sig.step((OpenLnum,OpenLden), T = t)
+
+#Code for plots
+plot1 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.plot(OpenLStepT, OpenLStepY) # choosing plot variables for x and y axes
+plt.ylabel('H') # label for subplot 1
+plt.grid(True) # show grid on plot
+
+plt.title('Open Loop') # title for entire figure 
+
+plt.show()
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+ \begin{figure}[H]
+   \centering
+   \includegraphics[width=0.8\linewidth]{plot1.PNG}
+   \caption{Part 1 Plot}
+ \end{figure}
+
+\subsection{Task Questions}
+4. Considering the expression found in Task 3, is the open-loop response stable? Explain why or why not. 
+\\ \\
+Since there is a positive pole, the open loop response is not stable.  The positive pole causes the output in the time domain to increase exponentially. 
+\\ \\ 
+6. Does your result from Task 5 support your answer from Task 4? Explain how.
+\\ \\
+Figure 2 shows that the step response of the open loop transfer function increases exponentially, confirming that the time domain output increases exponentially, which means the function is unstable.
+
+\section{Part 2}
+\subsection{Equations}
+\subsubsection{Symbolic Closed Loop Equation}
+\[H(s)=\dfrac{Y(s)}{X(s)}=\dfrac{A(s)G(s)}{1+B(s)G(s)}=\dfrac{\frac{A_{num}(s)G_{num}(s)}{A_{den}(s)G_{den}(s)}}
+{1+B(s)\frac{G_{num}(s)}{G_{den}(s)}}=\dfrac{A_{num}(s)G_{num}(s)}{A_{den}(s)G_{den}(s)+B(s)A_{den}(s)G_{num}(s)}\]
+\subsubsection{Closed Loop Equation}
+\[H(s)=\dfrac{s^{2}+13s+36}{2s^{5}+41s^{4}+500s^{3}+2995s^{2}+6878s+4344}\]
+\subsubsection{Closed Loop Factored Equation}
+\[H(s)=\dfrac{(s+4)(s+9)}{(s+5.16-j9.52)(s+5.16+j9.52)(s+6.18)(s+3)(s+1)}\]
+
+\subsection{Python Output}
+\begin{small}
+\begin{lstlisting}
+Closed Loop Numerator =  [ 1 13 36]
+Closed Loop Denominator =  [   2   41  500 2995 6878 4344]
+Closed Loop Values: 
+z= [-9. -4.]
+p= [-5.16+9.52j -5.16-9.52j -6.18+0.j   -3.  +0.j   -1.  +0.j  ]
+k= 0.5
+\end{lstlisting}
+\end{small}
+
+\subsection{Methodology}
+
+\paragraph{}
+The methodology for the second part of the lab was the same as the first part.  Sig.convolve was used to multiply factors together and sig.tf2zpk was used to find the poles and zeros in Python.
+
+\subsection{Code}
+\begin{scriptsize}
+\begin{lstlisting}
+#################################################################
+                        ##  PART 2 ##
+#################################################################
+
+ClosedLnum = sig.convolve(Anum0, Gnum0)
+print ('\nClosed Loop Numerator = ' , ClosedLnum)
+
+ClosedLden = sig.convolve(Aden0, Gden0) + sig.convolve(Bnum, sig.convolve(Aden0,Gnum0))
+print ('Closed Loop Denominator = ', ClosedLden)
+print ('Closed Loop Values: ')
+z,p,k = sig.tf2zpk(ClosedLnum,ClosedLden)
+print('z=',z)
+print('p=',np.round(p,2))
+print('k=',k)
+
+ClosedLStepT, ClosedLStepY = sig.step((ClosedLnum, ClosedLden), T = t)
+
+#Code for plots
+plot1 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.plot(ClosedLStepT, ClosedLStepY) # choosing plot variables for x and y axes
+plt.ylabel('H') # label for subplot 1
+plt.grid(True) # show grid on plot
+
+plt.title('Closed Loop') # title for entire figure 
+
+plt.show()
+
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+
+ \begin{figure}[H]
+	   \centering
+	   \includegraphics[width=0.9\linewidth]{plot2.PNG}
+	   \caption{Part 2 Plots}
+ \end{figure}
+\subsection{Task Questions}
+3. Using the closed-loop transfer function from Task 1, is the closed-loop response stable?  Explain why or why not. 
+\\ \\
+Since the closed loop transfer function has no positive real poles, the response is stable.
+\\ \\ 
+5. Does your result from Task 4 support your answer from Task 3?  Explain how.
+\\ \\
+The plot supports the fact that the response is stable since the output levels out.
+
+
+\section{Questions}
+1. In Part 1 Task 5, why does convolving the factored terms using scipy.signal.convolve() result in the expanded form of the numerator and denominator? Would this work with your user-defined convolution function from Lab 3? Why or why not?
+\\ \\
+Convolving the terms results in the expanded forms because convolution of functions in the time domain is the s domain functions multiplied together, resulting in the expanded form.  This should work with the user-defined function from Lab 3 since it and the sig.convolve functions returned the same values.  The accuracy would depend on the time step and would probably be more difficult to implement than using the built in convolve function.
+\\ \\
+2. Discuss the difference between the open- and closed-loop systems from Part 1 and Part 2. How does stability differ for each case, and why?
+\\ \\
+Open loop systems do not have feedback while closed loop systems have feedback.  In these two cases, the open loop transfer function was unstable and the closed loop transfer function was stable.  The open loop transfer function was unstable because of the positive pole and the closed loop transfer function was stable because it had no positive real poles.
+\\ \\
+3. What is the difference between scipy.signal.residue() used in Lab 6 and scipy.signal.tf2zpk() used in this lab?
+\\ \\
+Scipy.signal.residue() is used to compute partial fraction expansions.  Scipy.signal.tf2zpk() returns the zeros, poles and gain of a linear filter.  While these are somewhat similar functions, they are different and return different results as well as different output formats.
+\\ \\
+4. Is it possible for an open-loop system to be stable? What about for a closed-loop system to be unstable? Explain how or how not for each.
+\\ \\
+An open loop system can be stable if the inputs are already stable.  A closed loop system can be unstable if it has positive poles.
+\\ \\
+5. Leave any feedback on the clarity/usefulness of the purpose, deliverables, and expectations for this lab.
+\\ \\
+This lab was clear and I didn't have any problems understanding what was being asked.
+
+\section{GitHub Link}
+\url{https://github.com/pier1580}
+
+%\appendix
+%\section{Appendices}
+%\subsection{Part 1 Output}
+%\begin{scriptsize}
+%\begin{lstlisting}
+%Solution to prelab H(s):
+%r= [ 0.5 -0.5  1. ]
+%p= [ 0. -4. -6.]
+%k= []
+%\end{lstlisting}
+%\end{scriptsize}
+%
+%\subsection{Part 2 Output}
+%\begin{scriptsize}
+%\begin{lstlisting}
+%Solution to lab H(s):
+%r= [ 1.   +0.j    -0.486+0.728j -0.486-0.728j -0.215+0.j     0.093-0.048j
+%  0.093+0.048j]
+%p= [  0. +0.j  -3. +4.j  -3. -4.j -10. +0.j  -1.+10.j  -1.-10.j]
+%k= []
+%\end{lstlisting}
+%\end{scriptsize}
+
+
+
+
+\end{document}

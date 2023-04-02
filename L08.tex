@@ -1,0 +1,300 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% Chris Pierson %
+% ECE 351 Section 51 %
+% Lab 8 %
+% Due 3/21/23 %
+% %
+% %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Insert an Image:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{picture.PNG}
+%   \caption{Insert Caption Here}
+% \end{figure}
+
+% Create a New Section:
+% \section{Section Name}
+
+
+\documentclass[12pt]{article}
+
+% Language and font encoding
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{setspace}
+
+% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{gensymb}
+\usepackage{ mathrsfs }
+
+%Line Spacing
+\setstretch{1.5}
+
+%-------------------Begin Editing Here---------------------
+
+\title{%
+	\textbf{ ECE 351 LAB 8} \\
+ Fourier Series Approximation of a Square Wave 
+ %\\
+	 }
+
+\author{\\
+	Christopher Pierson}
+\begin{document}
+	
+%\maketitle
+	
+%Make a Title Page
+\vspace{\fill}
+\maketitle
+\vspace{\fill}
+\clearpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+
+\paragraph{}
+In this lab, we use a Fourier Series to approximate a give square wave and calculate the output using Python.
+
+%Introduction
+\section{Part 1}
+
+ \begin{figure}[H]
+   \centering
+   \includegraphics[width=0.8\linewidth]{square.PNG}
+   \caption{Square Wave}
+ \end{figure}
+
+\subsection{Equations}
+
+\[x(t)=\frac{1}{2}a_0+\sum_{k=1}^\infty a_k \cos(k\omega _0 t) +b_k \sin(k\omega_0 t) \]
+\[a_k=\frac{2}{T}\int_{0}^{T}x(t)\cos(k\omega_0t)dt\]
+\[b_k=\frac{2}{T}\int_{0}^{T}x(t)\sin(k\omega_0t)dt\]
+\[\omega_0=\frac{2\pi}{T}\]
+\par
+Since the square wave is asymmetric, $a_0=a_k=0$.
+\[x(t)=\dfrac{2}{k\pi}[1-\cos(2\pi k)]\]
+
+\subsection{Methodology}
+\paragraph{}
+First, the Fourier transform function was calculated in the prelab, which gave the result shown in the equations section.  Since the square wave was odd and did not have a DC offset, $a_{0}$ and $a_k$ were both 0.
+\par 
+The value for $b_k$ was found by entering the formula into python and returning the results for the required "k" values.  To plot the approximation, the formula for x(t) was put in a loop which repeats "k" times and adds the output to itself in each iteration.
+
+\subsection{Code}
+
+\begin{scriptsize}
+\begin{lstlisting}
+# ###############################################################
+# 
+# Chris Pierson #
+# ECE 351 #
+# Lab 8 #
+# Due 3/21/23 #
+# 
+# ###############################################################
+
+import numpy as np
+import matplotlib.pyplot as plt
+#import scipy.signal as sig
+
+#################################################################
+                        ##  PART 1 ##
+#################################################################
+steps = 1e-2
+t = np.arange(0, 20 + steps, steps) 
+
+T = 8
+w0 = (2*np.pi)/T
+ak = 0
+a0 = 0
+
+def bk(k):
+    return 2/(k*np.pi)*(1-np.cos(k*np.pi))
+    
+print('a0= 0, a1= 0')
+for i in range(1,4):
+    rounded = np.round(bk(i),3)   
+    print("b",i,'= ',rounded,sep="")
+
+def x(k,t):
+    y=0
+    for i in range(1,k+1):
+        y += 1/2*a0 + bk(i)*np.sin(i*w0*t)
+    return y
+
+# Code for plots
+plot1 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.subplot(3 ,1 ,1) # subplot 1: subplot format (row , column , number )
+plt.plot(t, x(1,t)) # choosing plot variables for x and y axes
+plt.ylabel('k=1') # label for subplot 1
+plt.grid(True) # show grid on plot
+
+plt.title('Lab 8 plots 1-3') # title for entire figure 
+
+plt.subplot(3, 1, 2) # subplot 2
+plt.plot(t, x(3,t))
+plt.ylabel('k=3') # label for subplot 2
+plt.grid(True) # show grid on plot
+
+plt.subplot(3, 1, 3) # subplot 2
+plt.plot(t, x(15,t))
+plt.ylabel('k=15') # label for subplot 2
+plt.grid(True) # show grid on plot
+
+plot2 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.subplot(3 ,1 ,1) # subplot 1: subplot format (row , column , number )
+plt.plot(t, x(50,t)) # choosing plot variables for x and y axes
+plt.ylabel('k=50') # label for subplot 1
+plt.grid(True) # show grid on plot
+
+plt.title('Lab 8 plots 4-6') # title for entire figure 
+
+plt.subplot(3, 1, 2) # subplot 2
+plt.plot(t, x(150,t))
+plt.ylabel('k=150') # label for subplot 2
+plt.grid(True) # show grid on plot
+
+plt.subplot(3, 1, 3) # subplot 2
+plt.plot(t, x(1500,t))
+plt.ylabel('k=1500') # label for subplot 2
+plt.grid(True) # show grid on plot
+
+plt.show()
+
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+ \begin{figure}[H]
+   \centering
+   \includegraphics[width=0.8\linewidth]{plot1.PNG}
+   \caption{Part 1 Plot 1}
+ \end{figure}
+ 
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot2.PNG}
+    \caption{Part 1 Plot 2}
+  \end{figure}
+
+
+%\section{Part 2}
+%\subsection{Equations}
+%\subsubsection{Symbolic Closed Loop Equation}
+%\[H(s)=\dfrac{Y(s)}{X(s)}=\dfrac{A(s)G(s)}{1+B(s)G(s)}=\dfrac{\frac{A_{num}(s)G_{num}(s)}{A_{den}(s)G_{den}(s)}}
+%{1+B(s)\frac{G_{num}(s)}{G_{den}(s)}}=\dfrac{A_{num}(s)G_{num}(s)}{A_{den}(s)G_{den}(s)+B(s)A_{den}(s)G_{num}(s)}\]
+%\subsubsection{Closed Loop Equation}
+%\[H(s)=\dfrac{s^{2}+13s+36}{2s^{5}+41s^{4}+500s^{3}+2995s^{2}+6878s+4344}\]
+%\subsubsection{Closed Loop Factored Equation}
+%\[H(s)=\dfrac{(s+4)(s+9)}{(s+5.16-j9.52)(s+5.16+j9.52)(s+6.18)(s+3)(s+1)}\]
+
+%\subsection{Python Output}
+%\begin{small}
+%\begin{lstlisting}
+%Closed Loop Numerator =  [ 1 13 36]
+%Closed Loop Denominator =  [   2   41  500 2995 6878 4344]
+%Closed Loop Values: 
+%z= [-9. -4.]
+%p= [-5.16+9.52j -5.16-9.52j -6.18+0.j   -3.  +0.j   -1.  +0.j  ]
+%k= 0.5
+%\end{lstlisting}
+%\end{small}
+%
+%\subsection{Methodology}
+%
+%\paragraph{}
+%The methodology for the second part of the lab was the same as the first part.  Sig.convolve was used to multiply factors together and sig.tf2zpk was used to find the poles and zeros in Python.
+%
+%\subsection{Code}
+%\begin{scriptsize}
+%\begin{lstlisting}
+
+
+%\end{lstlisting}
+%\end{scriptsize}
+%
+%\subsection{Results}
+%
+%
+% \begin{figure}[H]
+%	   \centering
+%%	   \includegraphics[width=0.9\linewidth]{plot2.PNG}
+%	   \caption{Part 2 Plots}
+% \end{figure}
+
+
+\section{Questions}
+1. Is x(t) an even or an odd function? Explain why.
+\\ \\
+The approximation x(t) is odd.  Since it is not centered at t=0, it is not even and it is based on a sine wave, making it an odd function.
+\\ \\
+2. Based on your results from Task 1, what do you expect the values of a2, a3, . . . , an to be?  Why?
+\\ \\
+I expect the values of $a_2$ to $a_{k}$ to remain zero for any value of k.  Since the function will always be odd, $a_k$ should always equal 0.
+\\ \\
+3. How does the approximation of the square wave change as the value of N increases? In what way does the Fourier series struggle to approximate the square wave?
+\\ \\ 
+The approximation of the square wave gets closer to the ideal square wave as N increases.  The Fourier series struggles close to the vertical parts of the approximation, as can be seen by the k=150 plot in Figure 3, the flat parts of x(t) are nearly flat until it gets close to the vertical parts.  Near the vertical parts of the approximation, there are spikes.
+\\ \\
+4. What is occurring mathematically in the Fourier series summation as the value of N increases?
+\\ \\ 
+As the value of N increases, each iteration gets smaller since k is in the denominator of the coefficient and the frequency of the cosine function increases.
+\\ \\ 
+5. Leave any feedback on the clarity of lab tasks, expectations, and deliverables
+\\ \\ 
+This lab was straightforward and easy to understand what was being asked.
+
+
+\section{GitHub Link}
+\url{https://github.com/pier1580}
+
+\appendix
+\section{Appendices}
+\subsection{Part 1 Output}
+\begin{scriptsize}
+\begin{lstlisting}
+a0= 0, a1= 0
+b1= 1.273
+b2= 0.0
+b3= 0.424
+\end{lstlisting}
+\end{scriptsize}
+
+%\subsection{Part 2 Output}
+%\begin{scriptsize}
+%\begin{lstlisting}
+%Solution to lab H(s):
+%r= [ 1.   +0.j    -0.486+0.728j -0.486-0.728j -0.215+0.j     0.093-0.048j
+%  0.093+0.048j]
+%p= [  0. +0.j  -3. +4.j  -3. -4.j -10. +0.j  -1.+10.j  -1.-10.j]
+%k= []
+%\end{lstlisting}
+%\end{scriptsize}
+
+
+
+
+\end{document}

@@ -1,0 +1,336 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% Chris Pierson %
+% ECE 351 Section 51 %
+% Lab 10 %
+% Due 4/4/23 %
+% %
+% %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Insert an Image:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{picture.PNG}
+%   \caption{Insert Caption Here}
+% \end{figure}
+
+% Create a New Section:
+% \section{Section Name}
+
+
+\documentclass[12pt]{article}
+
+% Language and font encoding
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{setspace}
+
+% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{gensymb}
+\usepackage{ mathrsfs }
+
+%Line Spacing
+\setstretch{1.5}
+
+%-------------------Begin Editing Here---------------------
+
+\title{%
+	\textbf{ ECE 351 LAB 10} \\
+Frequency Response 
+ %\\
+	 }
+
+\author{\\
+	Christopher Pierson}
+\begin{document}
+	
+%\maketitle
+	
+%Make a Title Page
+\vspace{\fill}
+\maketitle
+\vspace{\fill}
+\clearpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+\paragraph{}
+In this lab, we use Python to work with frequency response tools and Bode plots.  We begin by analyzing a given circuit (Figure 1) and finding the transfer function.  Next, we plot the magnitude and phase of the frequency response of the transfer function.
+\par 
+For Part II, we use the frequency response model developed in the previous part as a filter to be applied to the given signal, x(t) and plot the output.
+
+\begin{figure}[H]
+   	\centering
+   	\includegraphics[width=0.8\linewidth]{circuit.PNG}
+   	\caption{RLC Circuit}
+\end{figure}
+
+\section{Part 1}
+
+\subsection{Equations}
+\[H(s) = \frac{\frac{1}{RC}s}{s^{2}+\frac{1}{RC}s+\frac{1}{LC}}\]
+
+\[H(j\omega) = \frac{\frac{1}{RC}j\omega}{(j\omega)^{2}+\frac{1}{RC}j\omega+\frac{1}{LC}}\]
+
+\[|H(j\omega)| = \frac{\frac{\omega}{RC}}{\sqrt{(\frac{1}{LC} - \omega^2)^{2} + (\frac{\omega}{RC})^{2}}}\] 
+
+\[\angle H(j\omega) = 90\degree- \tan^{-1}(\frac{\frac{\omega}{RC}}{\frac{1}{LC}-\omega^2}) \]
+
+\subsection{Methodology}
+\paragraph{}
+Taking the function found in the prelab, I defined the component parameters, then the numerator and denominator of the function.  Next, I defined the magnitude and phase of the function as well as the magnitude and phase of the sig.bode output.
+\par 
+After initially plotting the hand-derived phase and the sig.bode output phase, I ran the hand\_phase array through a for loop to offset the hand\_phase by $\pi$ radians where it was greater than 90$\degree$ to make them match.
+\par 
+For task 3, I modified the given code to output the magnitude, phase and frequency instead of auto-plotting.  Doing this made the dB = True and deg = True conditions not work for some reason so I changed the mag1 and phase1 outputs to dB and degrees manually.
+
+\subsection{Code}
+
+\begin{scriptsize}
+\begin{lstlisting}
+R = 1000            # Resistor Value (Ohms)
+L = 27e-3           # Inductor Value (Henrys)
+C = 100e-9          # Capacitor Value (Farads)
+alpha = 1/(R*C) 
+beta = 1/(L*C)
+
+num = [alpha,0]             
+den = [1, alpha, beta]
+
+w = np.linspace(10**3,10**6,10**3)  # start, stop, # of points in freq range
+system = num, den
+
+hand_mag = (w*alpha/(w**2*alpha**2+beta**2-2*w**2*beta+w**4)**.5)
+
+hand_phase = 90 - np.arctan(w*alpha/(beta-w**2))*(180/np.pi) 
+for i in range(len(hand_phase)):    # fix phase change at 90 degrees
+    if  (hand_phase[i] > 90):
+        hand_phase[i] = hand_phase[i] - 180
+
+w, Bode_mag, Bode_phase = sig.bode(system, w)
+
+def dB2Mag(x):              # dB to magnitude
+    return 10**(x/20)
+
+def Mag2dB(x):
+    return 20 * np.log10(x)
+
+def Rad2Deg(x):
+    return 180*x/np.pi
+
+#################### Magnitude Plots #############################
+plot0 = plt.figure(figsize =(12 ,8)) # start a new figure        
+
+plt.subplot(211)
+plt.semilogx(w, Mag2dB(hand_mag))
+plt.ylabel('Magnitude (dB)')
+plt.title('Hand-Derived')
+plt.grid(which='both')
+plt.axis([1e3, 1e6, -40, 5])
+
+plt.subplot(212)
+plt.semilogx(w, Bode_mag)    
+plt.ylabel('Magnitude (dB)')
+plt.title('scipy.signal.bode')
+plt.grid(which='both')
+plt.axis([1e3, 1e6, -40, 5])
+
+plt.show()
+
+#################### Phase Plots #################################
+plot1 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.subplot(211)
+plt.semilogx(w, hand_phase)
+plt.ylabel('Phase (degrees)')
+plt.title('Hand-Derived')
+plt.grid(which='both')
+plt.axis([1e3, 1e6, -90, 90])
+plt.yticks([90,0,-20, -40, -60,-80,-90])
+
+plt.subplot(212)
+plt.semilogx(w, Bode_phase)   
+plt.xlabel('$\omega$ (rad/s)') 
+plt.ylabel('Phase (degrees)')
+plt.title('scipy.signal.bode')
+plt.grid(which='both')
+plt.axis([1e3, 1e6, -90, 90])
+
+plt.show()
+
+#################### Task 3 Plots #################################
+sys = con.TransferFunction(num, den)
+
+mag1, phase1, omega1 = con.bode(sys, w, dB = True, Hz = True, deg = True, plot = False) 
+
+# Modified auto-plot from handout
+plot2 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.subplot(211)
+plt.semilogx(omega1, Mag2dB(mag1)) # mag1 was not in dB
+plt.ylabel('Magnitude (dB)')
+plt.title('Hand-Derived')
+plt.grid(which='both')
+plt.axis([1e3, 1e6, -40, 5])
+
+plt.subplot(212)
+plt.semilogx(omega1, 360 + Rad2Deg(phase1)) # Added 360 to match previous plots
+plt.xlabel('$\omega$ (rad/s)') 
+plt.ylabel('Phase (degrees)')
+plt.title('scipy.signal.bode')
+plt.grid(which='both')
+plt.axis([1e3, 1e6, -90, 90])
+
+plt.show()
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+\begin{figure}[H]
+   	\centering
+   	\includegraphics[width=0.8\linewidth]{plot1.PNG}
+   	\caption{Hand-Derived vs sig.bode Magnitudes}
+\end{figure}
+ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot2.PNG}
+   	\caption{Hand-Derived vs sig.bode Phases}
+\end{figure}
+  
+\begin{figure}[H]
+   	\centering
+   	\includegraphics[width=0.8\linewidth]{plot3.PNG}
+   	\caption{Transfer Function Frequency Response}
+\end{figure}
+ 
+
+
+\section{Part 2}
+\subsection{Equations}
+\[x(t)=\cos(2\pi \cdot 100t)+\cos(2\pi \cdot 3024t)+\sin(2\pi \cdot 50000t)\]
+%x(t) = cos(2π · 100t) + cos(2π · 3024t) + sin(2π · 50000t)
+\subsection{Methodology}
+
+\paragraph{}
+For the second part of the lab, we plotted the given x(t) equation using the standard signal.plot function.  Next, we converted the transfer function from part I to its z-domain equivalent with the scipy.signal.bilinear() function.  Then we passed the input signal x(t) through the filter with scipy.signal.lfilter().  Lastly, we plotted the output signal.
+
+\subsection{Code}
+\begin{scriptsize}
+\begin{lstlisting}
+freq1 = 50000 # largest freq in function
+steps = 1/freq1 
+t = np.arange(0, .01, steps) 
+
+def x(t): 
+    return np.cos(2*np.pi*100*t)+np.cos(2*np.pi*3024*t)+np.sin(2*np.pi*50000*t)
+    
+plot1 = plt.figure(figsize =(12 ,8)) # start a new figure
+plt.plot(t, x(t))
+plt.grid(True) # show grid on plot
+
+plt.show()
+
+z1,z2 = sig.bilinear(num,den,freq1)
+last1 = sig.lfilter(z1,z2,x(t))
+
+plot1 = plt.figure(figsize =(12, 8)) # start a new figure
+plt.plot(t, last1)
+plt.grid(True) # show grid on plot
+
+plt.show()
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot4.PNG}
+   	\caption{signal x(t)}
+\end{figure} 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot5.PNG}
+   	\caption{Filter Output}
+\end{figure} 
+
+\newpage
+\section{Questions}
+1. Explain how the filter and filtered output in Part 2 makes sense given the Bode plots from Part 1. Discuss how the filter modifies specific frequency bands, in Hz.
+\\ \\
+Given the Bode plots from Part 1, the filtered output makes sense because the low, (2$\pi\cdot$100 rad/s), and high, (2$\pi\cdot$50000 rad/s) frequencies are filtered out, leaving only the 2$\pi\cdot$3024 rad/s frequency able to pass through the filter, which is what the output shows.  In Hz, the the output filters out the 100Hz and 50kHz frequencies and passes the 3kHz frequency that was inputted.
+\\ \\
+2. Discuss the purpose and workings of scipy.signal.bilinear() and scipy.signal.lfilter().
+\\ \\
+The scipy.signal.bilinear() function transforms the input from the s-plane to the digital z-plane by substituting $\frac{(z-1)}{(z+1)}$ for s.  The scipy.signal.lfilter() function filters a data sequence using a digital filter, with the digital filter being the output of the bilinear function.
+\\ \\
+3. What happens if you use a different sampling frequency in scipy.signal.bilinear() than you used for the time-domain signal?
+\\ \\ 
+If you use a different sampling frequency in scipy.signal.bilinear(), the output signal is not accurate to what the Bode plots would indicate.  Figures 7 and 8 show the results of reducing and increasing the frequency.  The magnitude of the output signal being reduced is the most obvious result.               
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot6.PNG}
+   	\caption{bilinear freq = 1/2 * time frequency}
+\end{figure} 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot7.PNG}
+   	\caption{bilinear freq = 5 * time frequency}
+\end{figure} 
+\noindent
+4. Leave any feedback on the clarity of lab tasks, expectations, and deliverables
+\\ \\ 
+The tasks, expectations and deliverables were all clearly stated.
+
+
+
+\section{GitHub Link}
+\url{https://github.com/pier1580}
+
+%\appendix
+%\section{Appendices}
+%\subsection{Part 1 Output}
+%\begin{scriptsize}
+%\begin{lstlisting}
+%a0= 0, a1= 0
+%b1= 1.273
+%b2= 0.0
+%b3= 0.424
+%\end{lstlisting}
+%\end{scriptsize}
+
+%\subsection{Part 2 Output}
+%\begin{scriptsize}
+%\begin{lstlisting}
+%Solution to lab H(s):
+%r= [ 1.   +0.j    -0.486+0.728j -0.486-0.728j -0.215+0.j     0.093-0.048j
+%  0.093+0.048j]
+%p= [  0. +0.j  -3. +4.j  -3. -4.j -10. +0.j  -1.+10.j  -1.-10.j]
+%k= []
+%\end{lstlisting}
+%\end{scriptsize}
+
+
+
+
+\end{document}

@@ -1,0 +1,284 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% Chris Pierson %
+% ECE 351 Section 51 %
+% Lab 6 %
+% Due 2/28/23 %
+% %
+% %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Insert an Image:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{picture.PNG}
+%   \caption{Insert Caption Here}
+% \end{figure}
+
+% Create a New Section:
+% \section{Section Name}
+
+
+\documentclass[12pt]{article}
+
+% Language and font encoding
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{setspace}
+
+% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{gensymb}
+\usepackage{ mathrsfs }
+
+%Line Spacing
+\setstretch{1.5}
+
+%-------------------Begin Editing Here---------------------
+
+\title{%
+	\textbf{ ECE 351 LAB 6} \\
+ Partial Fraction Expansion 
+ %\\
+	 }
+
+\author{\\
+	Christopher Pierson}
+\begin{document}
+	
+%\maketitle
+	
+%Make a Title Page
+\vspace{\fill}
+\maketitle
+\vspace{\fill}
+\clearpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+
+\paragraph{}
+In this lab, we use scipy.signal.residue to perform partial fraction expansion of the differential equation from the prelab as well as a 5th order differential equation in part 2.  The Laplace domain equations of the functions will also be plotted.
+
+
+
+%Introduction
+\section{Part 1}
+\subsection{Equations}
+
+A system is described by the following differential equation:
+\[y''(t)+10y'(t)+24y(t)=x''(t)+6x'(t)+12x(t)\]
+The transfer function, H(s), is:
+\[H(s)=\dfrac{Y(s)}{X(s)}=\dfrac{s^{2}+6s+12}{s^{2}+10s+24}\]
+The time domain function y(t) for the transfer function with a step input is:
+
+ \[y(t)=\mathscr{L}^{-1}\{H(s)\frac{1}{s}\}=\frac{1}{2}[1+2e^{-6t}-e^{-4t}]\]
+
+\subsection{Methodology}
+%To plot the step response of your prelab results and then use the scipy.signal.residue() function
+%to perform partial fraction expansion on the S-domain system found in the prelab
+
+\paragraph{}
+For the first part of the lab, I plotted the step response of my prelab results and used the scipy.signal.residue() function to do a partial fraction expansion on the Laplace domain equation.
+
+\subsection{Code}
+\begin{scriptsize}
+\begin{lstlisting}
+#################################################################
+                        ##  PART 1 ##
+#################################################################
+steps = 1e-5
+t = np.arange(0, 2 + steps, steps) 
+
+def prelab(t):
+    return 1/2+np.exp(-6*t)-.5*np.exp(-4*t)
+
+num0 = [1, 6, 12]
+den0 = [1,10, 24]
+den1 = [1,10,24,0]
+
+tout, yout = sig.step((num0,den0), T = t)#impulse function of num & den 
+
+#Code for plots
+plot1 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.subplot(2 ,1 ,1) # subplot 1: subplot format (row , column , number )
+plt.plot(t, prelab(t)) # choosing plot variables for x and y axes
+plt.ylabel('Hand Calculation') # label for subplot 1
+plt.grid(True) # show grid on plot
+
+plt.title('Lab 5 Part 1 Plots') # title for entire figure 
+
+plt.subplot(2, 1, 2) # subplot 2
+plt.plot(t, yout)
+plt.ylabel('sig.step Output') # label for subplot 2
+plt.grid(True) # show grid on plot
+
+plt.show()
+
+r,p,k = sig.residue(num0, den1)
+
+print('\nSolution to prelab H(s):\nr=',r)
+print('p=',p)
+print('k=',k)
+
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+ \begin{figure}[H]
+   \centering
+   \includegraphics[width=0.8\linewidth]{plot1.PNG}
+   \caption{Part 1 Plots}
+ \end{figure}
+
+
+
+
+\section{Part 2}
+\subsection{Equations}
+
+%\[\text{Sine Method: }f(t)=\frac{|g|}{\omega}e^{\alpha t}sin(\omega t+\angle g)\]
+
+The Cosine Method:
+
+\[\text{Complex Root: }p=\alpha+j \omega\]
+\[F(s)=\dfrac{F_{0}(s)}{(s+p)(s+p^{*})}\]
+\[\left. k=\dfrac{F_{0}(s)}{(s-p^{*})}\right|_{s=p}=|k|\angle k\]
+\[y_{c}(t)=2|k|e^{\alpha t}cos(\omega t+\angle k)u(t)\]
+
+
+\[ y^{(5)}(t)+18y^{(4)}(t)+218y^{(3)}(t)+2036y^{(2)}(t)+9085y^{(1)}(t)+25250y(t)=25250x(t) \]
+
+\subsection{Methodology}
+
+\paragraph{}
+For the second part of the lab, I repeated the method of the first part of the lab to find the r, p, and k values from the differential equation.  I used the cosine method out of the textbook to find the time domain solution of the given differential equation.  Both the cosine method and scipy.signal.step plot of the S domain functions were plotted and found to be identical.
+
+\subsection{Code}
+\begin{scriptsize}
+\begin{lstlisting}
+#################################################################
+                        ##  PART 2 ##
+#################################################################
+
+num2 = [25250]
+den2 = [1,18,218,2036,9085,25250,0]
+den3 = [1,18,218,2036,9085,25250]
+
+r,p,k = sig.residue(num2, den2)
+
+print('\nSolution to lab H(s):\nr=',np.round(r,3))
+print('p=',p)
+print('k=',k)
+
+def alpha(p):
+    return p.real
+
+def omega(p):
+    return p.imag
+
+def k_mag(r):
+    return np.abs(r)
+
+def k_ang(r):
+    return np.angle(r)
+
+def cosine_method(r,p,t): #cosine method from class
+    return k_mag(r)*np.exp(alpha(p)*t)*np.cos(omega(p)*t+k_ang(r))
+
+t=np.arange(0,4.5+steps,steps)
+
+yout2=(cosine_method(r[0],p[0],t)+cosine_method(r[1],p[1],t)
+       +cosine_method(r[2],p[2],t)+cosine_method(r[3],p[3],t)
+        +cosine_method(r[4],p[4],t)+cosine_method(r[5],p[5],t))
+
+tout, yout3 = sig.step((num2,den3), T = t)
+
+#Code for plots
+plot2 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.subplot(2 ,1 ,1) # subplot 1: subplot format (row , column , number )
+plt.plot(t, yout2) # choosing plot variables for x and y axes
+plt.ylabel('Cosine Method') # label for subplot 1
+plt.grid(True) # show grid on plot
+
+plt.title('Lab 5 Part 2 Plots') # title for entire figure 
+
+plt.subplot(2, 1, 2) # subplot 2
+plt.plot(t, yout3)
+plt.ylabel('sig.step Output') # label for subplot 2
+plt.grid(True) # show grid on plot
+
+plt.show()
+
+
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+
+ \begin{figure}[H]
+	   \centering
+	   \includegraphics[width=0.9\linewidth]{plot2.PNG}
+	   \caption{Part 2 Plots}
+ \end{figure}
+
+
+\section{Questions}
+1. For a non-complex pole-residue term, you can still use the cosine method, explain why this works.
+\\ \\
+The cosine method still works for non-complex pole residue terms since the $\omega$ value as well as the angle of k will both be zero with non-complex terms.  This makes the cosine term drop out since the inside of the function would be zero and cosine of zero is one.  This leaves the magnitude of k multiplied by the Euler number raised to the power of alpha times t, which ends up being equivalent to the transform of a function with no complex roots.
+\\ \\
+2. Leave any feedback on the clarity of lab tasks, expectations, and deliverables.
+\\ \\
+Lab tasks and deliverables clarity was straightforward.  
+
+
+\section{GitHub Link}
+\url{https://github.com/pier1580}
+
+\appendix
+\section{Appendices}
+\subsection{Part 1 Output}
+\begin{scriptsize}
+\begin{lstlisting}
+Solution to prelab H(s):
+r= [ 0.5 -0.5  1. ]
+p= [ 0. -4. -6.]
+k= []
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Part 2 Output}
+\begin{scriptsize}
+\begin{lstlisting}
+Solution to lab H(s):
+r= [ 1.   +0.j    -0.486+0.728j -0.486-0.728j -0.215+0.j     0.093-0.048j
+  0.093+0.048j]
+p= [  0. +0.j  -3. +4.j  -3. -4.j -10. +0.j  -1.+10.j  -1.-10.j]
+k= []
+\end{lstlisting}
+\end{scriptsize}
+
+
+
+
+\end{document}
