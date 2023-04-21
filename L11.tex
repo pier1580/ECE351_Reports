@@ -1,0 +1,249 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %
+% Chris Pierson %
+% ECE 351 Section 51 %
+% Lab 10 %
+% Due 4/10/23 %
+% %
+% %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Insert an Image:
+% \begin{figure}[H]
+%   \centering
+%   \includegraphics[width=0.8\linewidth]{picture.PNG}
+%   \caption{Insert Caption Here}
+% \end{figure}
+
+% Create a New Section:
+% \section{Section Name}
+
+
+\documentclass[12pt]{article}
+
+% Language and font encoding
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{rotating}
+\usepackage{setspace}
+
+% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{listings}
+\usepackage{gensymb}
+\usepackage{ mathrsfs }
+
+%Line Spacing
+\setstretch{1.5}
+
+%-------------------Begin Editing Here---------------------
+
+\title{%
+	\textbf{ ECE 351 LAB 11} \\
+Z - Transform Operations 
+ %\\
+	 }
+
+\author{\\
+	Christopher Pierson}
+\begin{document}
+	
+%\maketitle
+	
+%Make a Title Page
+\vspace{\fill}
+\maketitle
+\vspace{\fill}
+\clearpage
+
+\tableofcontents
+
+\newpage
+\section{Introduction}
+\paragraph{}
+In this lab, we will be working with Z-transforms and python functions related to them.  We will use python to analyze a given system as well as another function that is provided in the lab handout.
+
+
+\section{Part 1}
+
+\subsection{Equations}
+\paragraph{}
+\[\text{Given the causal function y[k] where y[k] is the input and x[k] is the output:}\]
+\[y[k] = 2x[k] − 40x[k − 1] + 10y[k − 1] − 16y[k − 2]\]
+\[\text{(Assume that the system is initially at rest.)}\]
+
+
+\subsection{Methodology}
+%\paragraph{}
+To find H(z) by hand, I first took the z transform of the given function to get:
+\[Y(z)=2X(z)-40z^{-1}X(z)+10z^{-1} Y(z)-16z^{-2} Y(z)\]
+Factoring Y(z) and X(z) out and rearranging yields:
+\[\dfrac{Y(z)}{X(z)}=\dfrac{2-40z^{-1}}{1-10z^{-1}+16z^{-2}}\]
+Putting the result in standard from:
+\[H(z)=\dfrac{Y(z)}{X(z)}=\dfrac{2z^{2}-40z}{z^{2}-10z+16}\]
+Factoring the denominator and saving a z for the z transform step later on:
+\[\dfrac{H(z)}{z}=\dfrac{2z-40}{(z-2)(z-8)}\]
+Partial Fraction Expansion:
+\[\dfrac{H(z)}{z}=\dfrac{A}{(z-2)}+\dfrac{B}{(z-8)}\]
+
+\[\left.A=\dfrac{2(z-20)}{z-8}\right|_{\;z=2}=6\]
+\[\left.B=\dfrac{2(z-20)}{z-2}\right|_{\;z=8}=-4\]
+\[H(z)=z \left(\dfrac{6}{z-2}-\dfrac{4}{z-8} \right)\]
+Transform:
+\[h[k]=6\cdot2^{k}-4\cdot8^{k}\]
+
+\paragraph{}
+The code for this lab was straightforward with no major difficulties.  The pole-zero plot code was provided in the lab handout and the other functions were followed from the python usage documentation.  I changed the frequency range by dividing by pi, and changed the angle output to degrees and centered at zero degrees with a for loop.
+
+
+\subsection{Code}
+
+\begin{scriptsize}
+\begin{lstlisting}
+z, p, k = zplane(num, den)
+# print(z, p, k)
+
+w, h = sig.freqz(num, den, whole= True)
+
+w = w/np.pi  # Changes frequency range to 0 to 2pi radians
+angles = np.unwrap(np.angle(h)) # code taken from python freqz() documentation
+
+for i in range(len(angles)): # Changes output angle to degrees and centers at 0
+    angles[i] = angles[i] * 180/np.pi-360
+
+plot1 = plt.figure(figsize =(12 ,8)) # start a new figure
+
+plt.subplot(2 ,1 ,1) # subplot 1: subplot format (row , column , number )
+plt.plot(w, 20 * np.log10(abs(h)),'b') # choosing plot variables for x and y axes
+plt.ylabel('H(z) Magnitude (dB)') # label for subplot 1
+plt.grid(True) # show grid on plot
+
+plt.title('Lab 11 Plots') # title for entire figure 
+
+plt.subplot(2, 1, 2) # subplot 2
+plt.plot(w, angles, 'g')
+plt.ylabel('Angle (degrees)') # label for subplot 2
+plt.grid(True) # show grid on plot
+plt.xlabel('Frequency (radians/pi)') # label for subplot 2
+
+plt.show()
+\end{lstlisting}
+\end{scriptsize}
+
+\subsection{Results}
+
+\begin{figure}[H]
+   	\centering
+   	\includegraphics[width=0.8\linewidth]{plot1.PNG}
+   	\caption{pole-zero plot for H(z)}
+\end{figure}
+ 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{plot2.PNG}
+   	\caption{Magnitude and phase responses of H(z)}
+\end{figure}
+  
+
+%\section{Part 2}
+%\subsection{Equations}
+%\[x(t)=\cos(2\pi \cdot 100t)+\cos(2\pi \cdot 3024t)+\sin(2\pi \cdot 50000t)\]
+%%x(t) = cos(2π · 100t) + cos(2π · 3024t) + sin(2π · 50000t)
+%\subsection{Methodology}
+%
+%\paragraph{}
+%For the second part of the lab, we plotted the given x(t) equation using the standard signal.plot function.  Next, we converted the transfer function from part I to its z-domain equivalent with the scipy.signal.bilinear() function.  Then we passed the input signal x(t) through the filter with scipy.signal.lfilter().  Lastly, we plotted the output signal.
+%
+%\subsection{Code}
+%\begin{scriptsize}
+%\begin{lstlisting}
+%freq1 = 50000 # largest freq in function
+%steps = 1/freq1 
+%t = np.arange(0, .01, steps) 
+%
+%def x(t): 
+%    return np.cos(2*np.pi*100*t)+np.cos(2*np.pi*3024*t)+np.sin(2*np.pi*50000*t)
+%    
+%plot1 = plt.figure(figsize =(12 ,8)) # start a new figure
+%plt.plot(t, x(t))
+%plt.grid(True) # show grid on plot
+%
+%plt.show()
+%
+%z1,z2 = sig.bilinear(num,den,freq1)
+%last1 = sig.lfilter(z1,z2,x(t))
+%
+%plot1 = plt.figure(figsize =(12, 8)) # start a new figure
+%plt.plot(t, last1)
+%plt.grid(True) # show grid on plot
+%
+%plt.show()
+%\end{lstlisting}
+%\end{scriptsize}
+%
+%\subsection{Results}
+%\begin{figure}[H]
+%    \centering
+%%    \includegraphics[width=0.8\linewidth]{plot4.PNG}
+%   	\caption{signal x(t)}
+%\end{figure} 
+%
+%\begin{figure}[H]
+%    \centering
+%%    \includegraphics[width=0.8\linewidth]{plot5.PNG}
+%   	\caption{Filter Output}
+%\end{figure} 
+
+%\newpage
+\section{Questions}
+1. Looking at the plot generated in Task 4, is H(z) stable? Explain why or why not.
+\\ \\
+A stable system would have all the poles in the unit circle.  Since none of the poles are in the unit circle, this system is not stable. 
+\\ \\
+2. Leave any feedback on the clarity of lab tasks, expectations, and deliverables
+\\ \\ 
+The tasks, expectations and deliverables were all clearly stated.
+
+
+
+\section{GitHub Link}
+\url{https://github.com/pier1580}
+
+\appendix
+\section{Appendices}
+\subsection{Task 3 Output}
+\begin{scriptsize}
+\begin{lstlisting}
+Task 3 Output:
+
+Poles:  [2. 8.]
+Residues:  [ 6. -4.] 
+\end{lstlisting}
+\end{scriptsize}
+
+%\subsection{Part 2 Output}
+%\begin{scriptsize}
+%\begin{lstlisting}
+%Solution to lab H(s):
+%r= [ 1.   +0.j    -0.486+0.728j -0.486-0.728j -0.215+0.j     0.093-0.048j
+%  0.093+0.048j]
+%p= [  0. +0.j  -3. +4.j  -3. -4.j -10. +0.j  -1.+10.j  -1.-10.j]
+%k= []
+%\end{lstlisting}
+%\end{scriptsize}
+
+
+
+
+\end{document}
